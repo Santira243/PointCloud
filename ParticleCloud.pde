@@ -18,18 +18,23 @@ boolean toggle = false;
 AudioIn input;
 Amplitude rms;
 int scale=1;
-void setup() {
-size(900, 768, P3D);
+PImage newImg;
+void setup() 
+{
+size(displayWidth, displayHeight, P3D);
 kinect = new KinectPV2(this);
 kinect.enableBodyTrackImg(true);
 kinect.init();
-img = loadImage("title.jpg");
+img = loadImage("1.jpg");
+
+newImg= img.get(0, 0, img.width, img.height);
+newImg.resize(displayWidth, displayHeight);
+
 int nDots = 1400;
 start = new PVector [nDots]; //2000 positions, 2000 particles
 end = new PVector [nDots];
 setRandomPositions (start); //it begins random
 arrayCopy (start, end); //creates "end" as a copy of "start"
-
 setNearestRandomPositions (end, end.length); //end = array, end.lenght = array length = 2000. Finds the nearest point in black color for each particle.
 input = new AudioIn(this, 0); // Creates an Audio input and grabs the 1st channel
 input.start(); // starts the Audio Input
@@ -39,9 +44,10 @@ frameRate(30);
 }
 void draw()
 {
-fill (#57385c, 80);
+//fill (#57385c, 80);
 noStroke();
-rect (0, 0, width, height); //paints the background
+//rect (0, 0, width, height); //paints the background
+background(0);
 scale=int(map(rms.analyze(), 0, 0.5, 1, 424)); // rms.analyze() return a value between 0 and 1.
 if (scale > 53) {
 check = true;
@@ -57,7 +63,7 @@ fill (random(80, 255), random(80, 255), random(80, 255));
 ellipse (current.x, current.y, 4, 4);
 }
 // move
-m+= 0.1; //m+=0.02; // begins at 0, as it increases, the lerp makes the ellipse move between the start position and the end position
+m+= 0.2; //m+=0.02; // begins at 0, as it increases, the lerp makes the ellipse move between the start position and the end position
 // check if target reached and set new target
 if (m>=1)
 {
@@ -65,17 +71,18 @@ if (kinect.getNumOfUsers()>0) {
 if (check == false) {
 img = kinect.getBodyTrackImage();
 } else if (check == true) {
-img = loadImage("black.jpg");
+img = loadImage("2.jpg");
 }
 } else {
-img = loadImage("title.jpg");
+img = loadImage("1.jpg");
 check=false;
 }
+newImg= img.get(0, 0, img.width, img.height);
+newImg.resize(displayWidth, displayHeight);
 m = 0;
 arrayCopy (end, start);
 setNearestRandomPositions (end, end.length);
 }
-
 if (toggle==true) {
 fill(0, 255, 0);
 rect(482, 10, 20, scale);
@@ -132,9 +139,9 @@ i = i +1;
 }
 boolean isTarget (PVector p) //if true, it will be part of "randomPos" array. Darker pixels will be the target (darkness < 10)
 {
-int index = (int) p.y * img.width + (int) p.x; //Y component times the image width + X component (index of the image pixel, because size of the sketch = size of the image).
-index = constrain (index, 0, img.pixels.length-1); //constrain? restringeix un valor entre un minim (0) i un maxim (pixels totals de la imatge, 512x424)
-float bright = brightness (img.pixels[index]);
+int index = (int) p.y * newImg.width + (int) p.x; //Y component times the image width + X component (index of the image pixel, because size of the sketch = size of the image).
+index = constrain (index, 0, newImg.pixels.length-1); //constrain? restringeix un valor entre un minim (0) i un maxim (pixels totals de la imatge, 512x424)
+float bright = brightness (newImg.pixels[index]);
 if (bright > 240) return false; //241 to 255, if white, FALSE
 else if (bright < 10) return true; //0 to 9, if dark, TRUE
 else
